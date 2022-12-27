@@ -1,3 +1,9 @@
+"""
+This is the main file!
+
+Use it to simulate finich results.
+"""
+
 import random
 import statistics
 import csv
@@ -22,6 +28,8 @@ def main():
 
 
 def writeTable(table):
+
+    #Writing results of simulation in csv-file
     with open("data/table.csv", "w") as file:
         writer = csv.DictWriter(file, fieldnames=["position","name", "rating", "gamesPlayed", "goalsScored", "goalsConceded", "points"])
         writer.writeheader()
@@ -30,7 +38,7 @@ def writeTable(table):
 
 
 def drawTable():
-
+    #Portraying genetated result in tabled form
     with open("data/table.csv", "r") as file:
         reader = csv.DictReader(file)
     #for row in reader:
