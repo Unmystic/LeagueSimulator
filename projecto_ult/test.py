@@ -1,6 +1,7 @@
 import csv
 import random
 from itertools import permutations
+from pprint import pprint
 
 teams = []
 def teamList():
@@ -8,97 +9,49 @@ def teamList():
         reader = csv.DictReader(file, fieldnames=["name", "rating"])
         for row in reader:
             teams.append(row["name"])
-    x = list(permutations(teams, 2))
-    return x
+    teamList = []
+    for team in teams:
+        teamList.append({"teamName": team, "opposition": [x for x in teams if x != team], "drawable": True})
+    return teamList
 
-d
+def drawTour(tm):
+    #Draw 1 round of tournament:
+    tour = []
+    random.shuffle(tm)
+    for element in  tm:
+        if element["drawable"]:
+            for team in element["opposition"]:
+                if not any(team in sl for sl in tour):
+                    tour.append([element["teamName"], team])
+                    element["drawable"] = False
+                    element["opposition"] = [ x for x in element["opposition"] if x != team]
+                    idx = [i for i in range(len(tm)) if tm[i]["teamName"] == team][0]
+                    tm[idx]["drawable"] = False
+                    tm[idx]["opposition"] = [ x for x in tm[idx]["opposition"] if x != element["teamName"]]
+                    break
+    return tour, tm
+        
+    
 
-firstHalf = []
-for i in range(len(perm)//2):
-    x = random.choice(perm)
-    if perm not in firstHalf:
-        firstHalf.insert(i,x)
-#print(len(firstHalf))
-
-schedule = []
-first = []
-second = []
-def drawSchedule(perm):
+def drawSchedule(tm):
     """Function simulates schedule for the teams"""
-
-    with open("data/test_schedule.csv", "w") as file:
-        writer = csv.DictWriter(file, fieldnames=["tour", "homeTeam","awayTeam"])
-        for i in range(len(first)):
-            for game in first[i]:
-                writer.writerow({"tour": i + 1, "homeTeam": game[0],"awayTeam": game[1] })
-        for i in range(len(second)):
-            for game in second[i]:
-                writer.writerow({"tour": i + len(teams),"homeTeam": game[0],"awayTeam": game[1]})
-
-def lastGameSwap():
-    for tour in schedule:
-        for element in schedule:
-            x = tour[len(tour)- 1]
-            y = element[:len(element)-1]
-            #print(x)
-            #print(y)
-
-            if tuple(x) in y:
-                tour[len(tour)-1] = x[::-1]
-
-                #print(f"yep{x}")
-                break
-    return schedule
-Discarded = []
-
-def validation(pair):
-
-    """Check if reverse pair already in schedule"""
-
-    Add = True
-    for element in schedule:
-        if pair[::-1] in element:
-            Add = False
-
-    if Add == True:
-        return True
-    else:
-        return False
-
-
-def firstHalf():
-    FHalf = []
-
-    for tour in schedule:
-        Add = True
-        if len(FHalf) > 0:
-            for game in tour:
-                for element in FHalf:
-                    if game[::-1] in element:
-                        print(f"{game}Nana{element}")
-                        print(" ")
-                        Add = False
-
-            if Add == True:
-                FHalf.append(tour)
-            elif Add ==False:
-                Discarded.append(tour)
-
-        else:
-            FHalf.append(tour)
-
-    return FHalf
+    pass
 
 
 
-schedule = lastGameSwap()
 
-
-with open("data/test_schedule.csv", "w") as file:
+""" with open("data/test_schedule.csv", "w") as file:
     writer = csv.DictWriter(file, fieldnames=["tour", "homeTeam","awayTeam"])
     for i in range(len(first)):
         for game in first[i]:
             writer.writerow({"tour": i + 1, "homeTeam": game[0],"awayTeam": game[1] })
     for i in range(len(second)):
         for game in second[i]:
-            writer.writerow({"tour": i + len(teams),"homeTeam": game[0],"awayTeam": game[1]})
+            writer.writerow({"tour": i + len(teams),"homeTeam": game[0],"awayTeam": game[1]}) """
+
+if __name__ == "__main__":
+    tm = teamList()
+    # pprint(tm)
+    tour, tm = drawTour(tm)
+    pprint(tour)
+    
