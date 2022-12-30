@@ -1,189 +1,102 @@
 import csv
 import random
-from itertools import permutations
+import itertools
+from pprint import pprint
+from collections import defaultdict
 
 teams = []
-with open("data/teams.csv", "r") as file:
-    reader = csv.DictReader(file, fieldnames=["name", "rating"])
-    for row in reader:
-        teams.append(row["name"])
-
-def Pair():
-    pairs = []
-    for i in range(len(teams)):
-        for j in range(len(teams)):
-            if teams[i] != teams[j]:
-                pairs.append({"team1": teams[i], "team2":teams[j]})
-    return pairs
+def teamList():
+    with open("data/test_teams.csv", "r") as file:
+        reader = csv.DictReader(file, fieldnames=["name", "rating"])
+        for row in reader:
+            teams.append(row["name"])
+    comb = list(itertools.permutations(teams, 2))      
+    return comb
 
 
-perm = list(permutations(teams, 2))
-y = set(perm)
+def first_draw(comb):
+    random.shuffle(comb)
+    li = []
+    selected = []
+    rejected = []
+    count = 0
+    for _ in range((len(teams) -1)) :
+        li.append([])
+    #print(len(li))
+    #print(len(comb))
+    for pair in comb:
+       
+        pair = list(pair)
+        #print(pair)
+        if [pair[1],pair[0]] not in selected:
 
-t = Pair()
-
-#print(len(t))
-#print(len(list(perm)))
-
-firstHalf = []
-for i in range(len(perm)//2):
-    x = random.choice(perm)
-    if perm not in firstHalf:
-        firstHalf.insert(i,x)
-#print(len(firstHalf))
-
-schedule = []
-first = []
-second = []
-def drawSchedule(perm):
-    """Function simulates schedule for the teams"""
-    for i  in range((len(teams) - 1) * 2):
-        tour = []
-        count = 0
-        elig = True
-        while len(tour) < 8:
-
-            random.seed(count)
-            x = random.choice(perm)
-            #print(tour)
-            print(len(schedule))
-            if len(tour) > 0:
-                valid = True
-                elig = True
-                for element in tour:
-                    if valid == False:
-                        continue
-                    if x[0] in element or x[1] in element:
-                        valid = False
-                        count = count + 1
-
-                if valid == True:
-                    #count = count + 1
-                    """Checking for eligibility to include in first half"""
-                    tour.append(x)
-                    perm.remove(x)
-
-                    if validation(x):
-                        print("Oka")
-                    else:
-                        elig = False
-                    #print(len(perm))
-            else:
-                tour.append(x)
-                perm.remove(x)
-                #print(len(perm))
-        game = []
-        """Adding last pair to the tour due to inability at current time to find best full simulation formula"""
-        for team in teams:
-            est = True
-            for match in tour:
-                if team in match:
-                    est = False
-            if est == True:
-                game.append(team)
-        tour.append(game)
-
-        schedule.insert(i,tour)
-        if elig == True:
-            if len(first) < (len(teams) -1):
-                first.append(tour)
-            else:
-                second.append(tour)
+            for tour in li:
+                #print(tour)
+                #if any(pair[0] in sl for sl in tour) or any(pair[1] in sl for sl in tour):
+                if (pair[0] in itertools.chain(*tour)) or (pair[1] in itertools.chain(*tour)):
+                    continue
+                    
+                else:
+                    tour.append(pair)
+                    selected.append(pair)
+                    break
+            if pair not in selected:
+                print("oi")
+                count += 1
+                rejected.append(pair)
         else:
-            if len(second) >= (len(teams) -1):
-                first.append(tour)
-            else:
-                second.append(tour)
+            print("yes")
+            count += 1
+            #rejected.append(pair)
+    #print("*"*20)
+    for item in li:
+        print(len(item))
+        for match in item:
+            random.seed()
+            x = random.choice([0,1])
+            if x :
+                match[0],match[1] = match[1],match[0]
+    print(f" Accepted  - {len(selected)}")
+    print(f" Rejected - {len(rejected)}")
+    print(count)
+    pprint(li)
+    pprint(rejected)
+    return li
 
-def lastGameSwap():
-    for tour in schedule:
-        for element in schedule:
-            x = tour[len(tour)- 1]
-            y = element[:len(element)-1]
-            #print(x)
-            #print(y)
+def second_draw(first):
+    second = first.copy()
+    for tour in second:
+        for match in tour:
+            match[0],match[1] = match[1],match[0]
+    random.shuffle(second)
+    return second
 
-            if tuple(x) in y:
-                tour[len(tour)-1] = x[::-1]
+def drawSchedule(comb):
+    first = first_draw(comb)
+    second = second_draw(first)
 
-                print(f"yep{x}")
-                break
-    return schedule
-Discarded = []
+    with open("data/test_schedule.csv", "w") as file:
+        writer = csv.DictWriter(file, fieldnames=["tour", "homeTeam","awayTeam"])
+        for i in range(len(first)):
+            for game in first[i]:
+                writer.writerow({"tour": i + 1, "homeTeam": game[0],"awayTeam": game[1] })
+        for i in range(len(second)):
+            for game in second[i]:
+                writer.writerow({"tour": i + len(teams),"homeTeam": game[0],"awayTeam": game[1]}) 
 
-
-def validation(pair):
-
-    """Check if reverse pair already in schedule"""
-
-    Add = True
-    for element in schedule:
-        if pair[::-1] in element:
-            Add = False
-
-    if Add == True:
-        return True
-    else:
-        return False
-
-
-def firstHalf():
-    FHalf = []
-
-    for tour in schedule:
-        Add = True
-        if len(FHalf) > 0:
-            for game in tour:
-                for element in FHalf:
-                    if game[::-1] in element:
-                        print(f"{game}Nana{element}")
-                        print(" ")
-                        Add = False
-
-            if Add == True:
-                FHalf.append(tour)
-            elif Add ==False:
-                Discarded.append(tour)
-
-        else:
-            FHalf.append(tour)
-
-    return FHalf
+if __name__ == "__main__":
+    
+    #pprint(tm)
+    #idx = [i for i in range(len(tm)) if tm[i]["teamName"] == "Flawless Tigers"][0]
+    #print(idx)
+    comb = teamList()
+    #pprint(comb)
+    first = first_draw(comb)
+    #drawSchedule(comb)
+    #pprint(first)
 
 
 
-drawSchedule(perm)
-"""
-for i  in range((len(teams) - 1) * 2):
 
-    for j in range(9):
-        print(schedule[i][j])
 
-    print(" ")
-"""
-schedule = lastGameSwap()
 
-for i  in range((len(teams) - 1) * 2):
-
-    for j in range(9):
-        print(schedule[i][j])
-
-    print(" ")
-
-print(len(first))
-print(len(second))
-#b = firstHalf()
-
-for element in first:
-    for game in element:
-        print(game)
-    print(" ")
-
-with open("data/schedule.csv", "w") as file:
-    writer = csv.DictWriter(file, fieldnames=["tour", "homeTeam","awayTeam"])
-    for i in range(len(first)):
-        for game in first[i]:
-            writer.writerow({"tour": i + 1, "homeTeam": game[0],"awayTeam": game[1] })
-    for i in range(len(second)):
-        for game in second[i]:
-            writer.writerow({"tour": i + len(teams),"homeTeam": game[0],"awayTeam": game[1]})

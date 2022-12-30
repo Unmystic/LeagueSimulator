@@ -15,27 +15,44 @@ def teamList():
     return teamList
 
 def drawTour(tm):
-    #Draw 1 round of tournament:
+    #Draw one round of tournament:
     tour = []
-    random.shuffle(tm)
-    for element in  tm:
-        if element["drawable"]:
-            for team in element["opposition"]:
-                if not any(team in sl for sl in tour):
-                    tour.append([element["teamName"], team])
-                    element["drawable"] = False
-                    element["opposition"] = [ x for x in element["opposition"] if x != team]
-                    idx = [i for i in range(len(tm)) if tm[i]["teamName"] == team][0]
-                    tm[idx]["drawable"] = False
-                    tm[idx]["opposition"] = [ x for x in tm[idx]["opposition"] if x != element["teamName"]]
-                    break
+    mylist = tm.copy()
+    #random.seed()
+    while len(tour) < (len(teams) // 2) :
+               
+        random.seed()
+        random.shuffle(mylist)     
+        for element in  mylist:
+            if element["drawable"]:
+                for team in element["opposition"]:
+                    if not any(team in sl for sl in tour):
+                        tour.append([element["teamName"], team])
+                        element["drawable"] = False
+                        element["opposition"] = [ x for x in element["opposition"] if x != team]
+                        
+                        pprint(len(element["opposition"]))
+                        idx = [i for i in range(len(mylist)) if mylist[i]["teamName"] == team][0]
+                        mylist[idx]["drawable"] = False
+                        mylist[idx]["opposition"] = [ x for x in mylist[idx]["opposition"] if x != element["teamName"]]
+                        
+                        pprint(len(tm[idx]["opposition"]))
+                        break
+    for elm in  mylist:
+        elm["drawable"] = True
+    tm = mylist     
+                   
+    pprint(tour)
     return tour, tm
-        
-    
+           
 
 def drawSchedule(tm):
     """Function simulates schedule for the teams"""
-    pass
+    schedule = []
+    for _ in range(len(teams)- 1):
+        tour, tm = drawTour(tm)
+        schedule.append(tour)
+    pprint(schedule)
 
 
 
@@ -51,7 +68,10 @@ def drawSchedule(tm):
 
 if __name__ == "__main__":
     tm = teamList()
-    # pprint(tm)
-    tour, tm = drawTour(tm)
-    pprint(tour)
-    
+    #pprint(tm)
+    #tour, tm = drawTour(tm)
+    #pprint(tour)
+    #pprint(tm)
+    drawSchedule(tm)
+"""     for pos in tm:
+        pprint([pos["teamName"], pos["opposition"]]) """

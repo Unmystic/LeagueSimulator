@@ -17,8 +17,8 @@ from test_match import matchEngine
 def main():
     createTeams()
 
-    perm = test_schedule.teamList()
-    test_schedule.drawSchedule(perm)
+    comb = test_schedule.teamList()
+    test_schedule.drawSchedule(comb)
     table = matchEngine()
     #for position in table:
         #print(position)
